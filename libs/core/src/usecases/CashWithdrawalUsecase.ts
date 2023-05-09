@@ -1,15 +1,36 @@
 import {UsecaseBase} from "./UsecaseBase";
 
-export class CashWithdrawalUsecase extends UsecaseBase<any> {
+export type IdentityProperties = {
+  id: string
+}
+
+export type UserCommand = {
+  user_id: string,
+  amount: number,
+  currentAccountAmount: number,
+}
+
+export type CashWithdrawalResponse = {
+  // user_name: string,
+  amountDrew: number,
+  currentMoney: number,
+  beforeDrewMoney: number
+}
+
+export class CashWithdrawalUsecase extends UsecaseBase<CashWithdrawalResponse, UserCommand> {
   canExecute(): this {
-    if(!this){
-      // TODO check if the user has access to the resource
+    if (this.identity.id !== this.command.user_id) {
       this.deniedAccess()
     }
     return this;
   }
 
-  execute(): Promise<any> {
-    return Promise.resolve(undefined);
+  async execute(): Promise<CashWithdrawalResponse> {
+    const currentMoney = this.command.currentAccountAmount - this.command.amount;
+    return {
+      currentMoney,
+      amountDrew: this.command.amount,
+      beforeDrewMoney: this.command.currentAccountAmount
+    };
   }
 }
