@@ -5,6 +5,7 @@ import {ac} from "vitest/dist/types-b7007192";
 export type UserCommand = {
   user_id: string,
   amount: number,
+  currentDate: Date
 }
 
 export type CashWithdrawalResponse = {
@@ -33,6 +34,6 @@ export class CashWithdrawalUsecase extends UsecaseBase<CashWithdrawalResponse, U
   }
 
   async execute(): Promise<CashWithdrawalResponse> {
-    return await this.bankAccountRepository.withDraw(this.command.amount)
+    return await this.bankAccountRepository.withDraw(this.command.amount, this.command.currentDate)
   }
 }

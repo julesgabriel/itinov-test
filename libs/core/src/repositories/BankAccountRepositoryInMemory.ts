@@ -13,19 +13,25 @@ export class BankAccountRepositoryInMemory implements IBankAccountRepository {
     return Promise.resolve(this.bankAccountInMemory)
   }
 
-  get inMemory() {
-    return this.bankAccountInMemory
+  setInfos(infos) {
+    this.bankAccountInMemory = {
+      ...this.bankAccountInMemory,
+      ...infos
+    }
   }
 
-  withDraw(amount: number): Promise<CashWithdrawalResponse> {
+  withDraw(amount: number, currentDate: Date): Promise<CashWithdrawalResponse> {
     const beforeDrewMoney = this.bankAccountInMemory.currentAmount
     const afterDrewCurrentAmount = beforeDrewMoney - amount
-    this.feedsWith(new BankAccount({
+    this.setInfos({
         currentAmount: afterDrewCurrentAmount,
-        ceiling: 3000,
-        amountOfMoneyWithDrewThisMonth: this.inMemory.amountOfMoneyWithDrewThisMonth += amount
+        ceiling: this.bankAccountInMemory.ceiling,
+        amountOfMoneyWithDrewThisMonth: (this.bankAccountInMemory.amountOfMoneyWithDrewThisMonth + amount),
+        operations: Array.isArray(this.bankAccountInMemory.operations)
+          ? [...this.bankAccountInMemory.operations, {amount: amount, date: currentDate}]
+          : [{amount: amount, date: currentDate}],
       }
-    ))
+    )
     return Promise.resolve({
       amountDrew: amount,
       currentMoney: this.bankAccountInMemory.currentAmount,

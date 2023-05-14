@@ -5,6 +5,7 @@ import {
 import {IdentityProperties} from "../entities/IdentityProperties";
 import {BankAccountRepositoryInMemory} from "../repositories/BankAccountRepositoryInMemory";
 import {BankAccount} from "../entities/BankAccount";
+import {D} from "vitest/dist/types-b7007192";
 
 
 const badId: IdentityProperties = {
@@ -14,11 +15,13 @@ const badId: IdentityProperties = {
 const goodSimpleCommand: UserCommand = {
   user_id: 'good_id',
   amount: 300,
+  currentDate: new Date()
 }
 
 const goodDifferentCommand: UserCommand = {
   user_id: 'good_id',
   amount: 200,
+  currentDate: new Date()
 }
 
 
@@ -42,8 +45,8 @@ describe('CashWithdrawal usecase', () => {
           ceiling: 3000,
         })
       )
-      bankAccountRepository.withDraw(2900)
-      bankAccountRepository.withDraw(100)
+      bankAccountRepository.withDraw(2900, new Date())
+      bankAccountRepository.withDraw(100, new Date())
       const canExecute = cashWithdrawalUsecase.as({
         id: goodSimpleCommand.user_id
       }).with({
@@ -84,6 +87,35 @@ describe('CashWithdrawal usecase', () => {
         amountDrew: goodDifferentCommand.amount,
         beforeDrewMoney: 2000,
       })
+    })
+
+    it('Should save the operations made', async () => {
+      await bankAccountRepository.feedsWith(new BankAccount({
+        currentAmount: 2000,
+        ceiling: 3000,
+      }))
+
+      await cashWithdrawalUsecase.as({
+        id: goodSimpleCommand.user_id
+      }).with(goodSimpleCommand).run();
+
+      await cashWithdrawalUsecase.as({
+        id: goodSimpleCommand.user_id
+      }).with(goodSimpleCommand).run();
+
+      const accountInfos = await bankAccountRepository.getAccountInfos()
+
+
+      expect(accountInfos.operations).toEqual([
+        {
+          amount: goodSimpleCommand.amount,
+          date: new Date(goodSimpleCommand.currentDate)
+        },
+        {
+          amount: goodSimpleCommand.amount,
+          date: new Date(goodSimpleCommand.currentDate)
+        },
+      ])
     })
   })
 })
