@@ -1,36 +1,38 @@
 import {UsecaseBase} from "./UsecaseBase";
-
-export type IdentityProperties = {
-  id: string
-}
+import {IBankAccountRepository} from "@itinov/ports";
+import {ac} from "vitest/dist/types-b7007192";
 
 export type UserCommand = {
   user_id: string,
   amount: number,
-  currentAccountAmount: number,
 }
 
 export type CashWithdrawalResponse = {
-  // user_name: string,
   amountDrew: number,
   currentMoney: number,
   beforeDrewMoney: number
 }
 
 export class CashWithdrawalUsecase extends UsecaseBase<CashWithdrawalResponse, UserCommand> {
-  canExecute(): this {
+  constructor(
+    private readonly bankAccountRepository: IBankAccountRepository
+  ) {
+    super();
+  }
+
+
+  async canExecute(): Promise<this> {
     if (this.identity.id !== this.command.user_id) {
       this.deniedAccess()
+    }
+    const accountInfos = await this.bankAccountRepository.getAccountInfos()
+    if ((accountInfos.amountOfMoneyWithDrewThisMonth + this.command.amount) > accountInfos.ceiling) {
+      throw new Error('Cannot withdraw more money, ceiling reached')
     }
     return this;
   }
 
   async execute(): Promise<CashWithdrawalResponse> {
-    const currentMoney = this.command.currentAccountAmount - this.command.amount;
-    return {
-      currentMoney,
-      amountDrew: this.command.amount,
-      beforeDrewMoney: this.command.currentAccountAmount
-    };
+    return await this.bankAccountRepository.withDraw(this.command.amount)
   }
 }

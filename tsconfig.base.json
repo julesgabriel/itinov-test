@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@itinov/core": ["libs/core/src/index.ts"]
+      "@itinov/core": ["libs/core/src/index.ts"],
+      "@itinov/ports": ["libs/ports/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

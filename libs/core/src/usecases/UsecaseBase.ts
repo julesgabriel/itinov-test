@@ -1,10 +1,10 @@
-import {IdentityProperties} from "./CashWithdrawalUsecase";
+import {IdentityProperties} from "../entities/IdentityProperties";
 
 export abstract class UsecaseBase<T, C> {
   identity: IdentityProperties;
   command: C
 
-  abstract canExecute(): this;
+  abstract canExecute(): this | Promise<this>;
 
   abstract execute(): Promise<T>;
 
@@ -19,7 +19,8 @@ export abstract class UsecaseBase<T, C> {
   }
 
   async run(): Promise<T> {
-    return (await this.canExecute()).execute();
+    await this.canExecute()
+    return this.execute();
   }
 
   protected deniedAccess() {
